@@ -1,0 +1,73 @@
+/* Styles for the PatientMessages area info card */
+.area-info-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(255,250,240,0.95), rgba(245,252,255,0.9));
+  border: 1px solid rgba(30,136,229,0.06);
+  box-shadow: 0 6px 18px rgba(7,22,48,0.06);
+  margin-top: 8px;
+}
+
+.area-info-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+}
+
+.topic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fff;
+  color: #0b72b9;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(11,114,185,0.08);
+  border: 1px solid rgba(11,114,185,0.08);
+}
+
+.topic-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle at 30% 30%, #ffb74d, #f57c00);
+  border-radius: 50%;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+}
+
+.area-info-body {
+  flex: 1 1 auto;
+}
+
+.area-info-title {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  color: #0f3b57;
+}
+
+.area-info-text {
+  margin: 0 0 8px 0;
+  color: #235b76;
+  line-height: 1.35;
+}
+
+.area-info-why {
+  margin: 0;
+  color: #516e7a;
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .area-info-card { 
+    flex-direction: row; 
+    gap: 12px;
+    padding: 12px;
+  }
+  .area-info-left { min-width: 72px; }
+  .area-info-title { font-size: 15px; }
+}

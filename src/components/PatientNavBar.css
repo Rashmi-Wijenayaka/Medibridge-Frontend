@@ -1,0 +1,26 @@
+.patient-navbar {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid #dbe4ee;
+}
+
+.patient-navbar .nav-btn {
+  border: 1px solid #c5d5e6;
+  background: #f4f8fc;
+  color: #21415f;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.patient-navbar .nav-btn:hover {
+  background: #e4eef8;
+}
