@@ -27,6 +27,7 @@ const AdminDashboard = ({ onBack }) => {
   const [diagnosisClueClicked, setDiagnosisClueClicked] = useState(false);
   const [suggestedDiagnosisClicked, setSuggestedDiagnosisClicked] = useState(false);
   const [submitDiagnosisClicked, setSubmitDiagnosisClicked] = useState(false);
+  const [missingScanIds, setMissingScanIds] = useState(() => new Set());
 
   const buildPatientDisplayKey = useCallback((patient) => {
     // Key patients primarily by normalized name so different records for
@@ -123,6 +124,20 @@ const AdminDashboard = ({ onBack }) => {
     const clean = fileUrl.split('?')[0];
     const idx = clean.lastIndexOf('.');
     return idx >= 0 ? clean.slice(idx + 1).toUpperCase() : 'FILE';
+  };
+
+  useEffect(() => {
+    // Reset missing-file markers when scan list changes (e.g. after re-upload).
+    setMissingScanIds(new Set());
+  }, [selectedPatient?.id, patientScans]);
+
+  const markScanMissing = (scanId) => {
+    setMissingScanIds(prev => {
+      if (prev.has(scanId)) return prev;
+      const next = new Set(prev);
+      next.add(scanId);
+      return next;
+    });
   };
 
   const evaluateAdminWorkflowStatus = (latestDiag, diagnosisCount, expectedVisitCount) => {
@@ -447,7 +462,7 @@ const AdminDashboard = ({ onBack }) => {
     }
   };
 
-  const submitDiagnosis = () => {
+  const submitDiagnosis = async () => {
     setSubmitDiagnosisClicked(true);
     if (!diagnosis.trim() || !selectedPatient) return;
     const token = localStorage.getItem('token');
@@ -458,58 +473,61 @@ const AdminDashboard = ({ onBack }) => {
       patient: selectedPatient.id,
       admin_notes: diagnosis
     };
-    fetch(apiUrl('/api/diagnoses/'), {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        ...headers
-      },
-      body: JSON.stringify(payload)
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to save');
-        return res.json();
-      })
-      .then(data => {
-        console.log('Diagnosis saved', data);
-        // Generate PDF and send email
-        fetch(apiUrl(`/api/generate-pdf/${data.id}/`), {
-          method: 'POST',
-          headers: headers
-        }).then(pdfRes => {
-          if (pdfRes.ok) {
-            // PDF generated, now send email
-            fetch(apiUrl(`/api/send-email/${data.id}/`), {
-              method: 'POST',
-              headers: headers
-            }).then(emailRes => {
-              if (emailRes.ok) {
-                alert('Diagnosis saved, PDF generated, and email notification sent to patient.');
-              }
-            });
-          }
-        });
-        if (draftStorageKey) {
-          localStorage.removeItem(draftStorageKey);
-        }
-        setDiagnosisDraftMeta('');
-        setDiagnosis('');
-        setAiPrimaryClue('');
-        setAiSecondaryClue('');
-        setAiScanSummary(null);
-        setAiPatientSuggestion('');
-        setAiWhyThisClue([]);
-        // Refresh immediately so this patient drops from the "Conclusion Needed" list
-        // until new questionnaire answers are submitted.
-        loadPatients();
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Error saving diagnosis');
-      })
-      .finally(() => {
-        setIsSubmittingDiagnosis(false);
+    try {
+      const saveRes = await fetch(apiUrl('/api/diagnoses/'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        },
+        body: JSON.stringify(payload)
       });
+
+      const saveData = await saveRes.json().catch(() => ({}));
+      if (!saveRes.ok) {
+        throw new Error(saveData.error || 'Failed to save diagnosis');
+      }
+      console.log('Diagnosis saved', saveData);
+
+      const pdfRes = await fetch(apiUrl(`/api/generate-pdf/${saveData.id}/`), {
+        method: 'POST',
+        headers: headers
+      });
+      if (!pdfRes.ok) {
+        const pdfErr = await pdfRes.json().catch(() => ({}));
+        throw new Error(pdfErr.error || 'Diagnosis saved, but PDF generation failed');
+      }
+
+      const emailRes = await fetch(apiUrl(`/api/send-email/${saveData.id}/`), {
+        method: 'POST',
+        headers: headers
+      });
+      if (!emailRes.ok) {
+        const emailErr = await emailRes.json().catch(() => ({}));
+        throw new Error(emailErr.error || 'Diagnosis saved, but email sending failed');
+      }
+
+      alert('Diagnosis saved, PDF generated, and email notification sent to patient.');
+
+      if (draftStorageKey) {
+        localStorage.removeItem(draftStorageKey);
+      }
+      setDiagnosisDraftMeta('');
+      setDiagnosis('');
+      setAiPrimaryClue('');
+      setAiSecondaryClue('');
+      setAiScanSummary(null);
+      setAiPatientSuggestion('');
+      setAiWhyThisClue([]);
+      // Refresh immediately so this patient drops from the "Conclusion Needed" list
+      // until new questionnaire answers are submitted.
+      loadPatients();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Error saving diagnosis');
+    } finally {
+      setIsSubmittingDiagnosis(false);
+    }
   };
 
   const copyDiagnosis = async () => {
@@ -763,22 +781,39 @@ const AdminDashboard = ({ onBack }) => {
               <div className="scan-gallery">
                 <h4>Uploaded Scans</h4>
                 <div className="scan-thumbnails">
-                  {patientScans.map(scan => (
-                    <div key={`scan-${scan.id}`} className="scan-thumb">
-                      {scan.file ? (
-                        <a href={assetUrl(scan.file)} target="_blank" rel="noopener noreferrer">
-                          {isPdfFile(scan.file) ? (
-                            <div className="pdf-icon">📄</div>
-                          ) : isImageFile(scan.file) ? (
-                            <img src={assetUrl(scan.file)} alt="scan" />
-                          ) : (
-                            <div className="pdf-icon">{getFileExtension(scan.file)}</div>
-                          )}
-                        </a>
-                      ) : null}
-                    </div>
-                  ))}
+                  {patientScans.map(scan => {
+                    const fileUrl = scan.file ? assetUrl(scan.file) : '';
+                    const imageFile = isImageFile(scan.file || '');
+                    const missingFile = missingScanIds.has(scan.id);
+
+                    return (
+                      <div key={`scan-${scan.id}`} className="scan-thumb">
+                        {!scan.file ? (
+                          <div className="scan-missing" title="Scan file is missing">Missing file</div>
+                        ) : missingFile ? (
+                          <div className="scan-missing" title="File not found. Please re-upload this scan.">Missing file</div>
+                        ) : imageFile ? (
+                          <img
+                            src={fileUrl}
+                            alt="scan"
+                            onError={() => markScanMissing(scan.id)}
+                          />
+                        ) : (
+                          <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                            {isPdfFile(scan.file) ? (
+                              <div className="pdf-icon">📄</div>
+                            ) : (
+                              <div className="pdf-icon">{getFileExtension(scan.file)}</div>
+                            )}
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
+                {missingScanIds.size > 0 && (
+                  <p className="scan-missing-hint">Some scans are unavailable on the server. Please re-upload those files.</p>
+                )}
               </div>
             )}
             <div className="diagnosis-section">

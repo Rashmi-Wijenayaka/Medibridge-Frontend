@@ -686,6 +686,26 @@
   max-height: 100%;
 }
 
+.scan-missing {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #7a1f1f;
+  background: #fff2f2;
+}
+
+.scan-missing-hint {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: #7a1f1f;
+}
+
 .pdf-icon {
   font-size: 1.8rem;
 }
