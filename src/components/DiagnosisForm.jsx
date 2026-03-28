@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './DiagnosisForm.css';
+import { apiUrl } from '../api';
 
 const DiagnosisForm = ({ onStart, onPatientInfoSubmit, patientData }) => {
   const [formData, setFormData] = useState({
@@ -47,7 +48,7 @@ const DiagnosisForm = ({ onStart, onPatientInfoSubmit, patientData }) => {
       setStatusMessage('');
 
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/patients/${activePatientId}/`);
+        const response = await fetch(apiUrl(`/api/patients/${activePatientId}/`));
         if (!response.ok) {
           throw new Error('Unable to load your existing patient information.');
         }
@@ -213,8 +214,8 @@ const DiagnosisForm = ({ onStart, onPatientInfoSubmit, patientData }) => {
 
       const response = await fetch(
         isExistingPatient
-          ? `http://127.0.0.1:8000/api/patients/${targetPatientId}/`
-          : 'http://127.0.0.1:8000/api/patients/',
+          ? apiUrl(`/api/patients/${targetPatientId}/`)
+          : apiUrl('/api/patients/'),
         {
         method: isExistingPatient ? 'PATCH' : 'POST',
         headers: {
@@ -280,7 +281,7 @@ const DiagnosisForm = ({ onStart, onPatientInfoSubmit, patientData }) => {
 
     try {
       // Keep backend patient profile in sync so chatbot and admin Q/A can resolve the correct dataset.
-      const updateResponse = await fetch(`http://127.0.0.1:8000/api/patients/${patientId}/`, {
+      const updateResponse = await fetch(apiUrl(`/api/patients/${patientId}/`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -310,7 +311,7 @@ const DiagnosisForm = ({ onStart, onPatientInfoSubmit, patientData }) => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/dataset/?area=${encodeURIComponent(area)}`);
+      const response = await fetch(apiUrl(`/api/dataset/?area=${encodeURIComponent(area)}`));
       if (!response.ok) {
         let backendMessage = '';
         try {

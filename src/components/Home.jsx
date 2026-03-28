@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Home.css';
 import PatientAuth from './PatientAuth';
+import { apiUrl } from '../api';
 
 const QUESTIONNAIRE_COMPLETION_TEXT = 'Thank you for completing all the diagnostic questions';
 
@@ -61,9 +62,9 @@ const Home = ({ onGetStarted, onPatientStart, onDoctorLogin, onAdminLogin, onPat
 
     try {
       const [messagesRes, doctorRes, adminRes] = await Promise.all([
-        fetch(`http://127.0.0.1:8000/api/messages/?patient=${patientId}`),
-        fetch(`http://127.0.0.1:8000/api/doctormessages/?patient=${patientId}`),
-        fetch(`http://127.0.0.1:8000/api/diagnoses/?patient=${patientId}`)
+        fetch(apiUrl(`/api/messages/?patient=${patientId}`)),
+        fetch(apiUrl(`/api/doctormessages/?patient=${patientId}`)),
+        fetch(apiUrl(`/api/diagnoses/?patient=${patientId}`))
       ]);
 
       const chatMessages = messagesRes.ok ? await messagesRes.json() : [];
@@ -173,7 +174,7 @@ const Home = ({ onGetStarted, onPatientStart, onDoctorLogin, onAdminLogin, onPat
 
   const handleClick = async () => {
     try {
-      const res = await fetch('/api/');
+      const res = await fetch(apiUrl('/api/'));
       const data = await res.json();
       console.log('Backend says:', data.message);
     } catch (err) {

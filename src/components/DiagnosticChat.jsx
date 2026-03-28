@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './DiagnosticChat.css'; 
+import { apiUrl } from '../api';
 
 const DiagnosticChat = ({ patientData, dataset, onCompletionChange }) => {
   const [messages, setMessages] = useState([]);
@@ -213,7 +214,7 @@ const DiagnosticChat = ({ patientData, dataset, onCompletionChange }) => {
         const form = new FormData();
         form.append('patient', patientData.id);
         form.append('file', file);
-        const res = await fetch('http://127.0.0.1:8000/api/scans/', {
+        const res = await fetch(apiUrl('/api/scans/'), {
           method: 'POST',
           body: form
         });
@@ -452,7 +453,7 @@ const DiagnosticChat = ({ patientData, dataset, onCompletionChange }) => {
         question_index: targetQuestionIndex
       };
       console.log('Chat request payload:', payload);
-      const response = await fetch('http://127.0.0.1:8000/api/chat/', {
+      const response = await fetch(apiUrl('/api/chat/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

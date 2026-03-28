@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './AdminDoctor.css';
+import { apiUrl } from '../api';
 
 const PatientAuth = ({ onLogin, onBack }) => {
   const [mode, setMode] = useState('login');
@@ -92,7 +93,7 @@ const PatientAuth = ({ onLogin, onBack }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/patient-login/', {
+      const response = await fetch(apiUrl('/api/patient-login/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ const PatientAuth = ({ onLogin, onBack }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/patient-signup/', {
+      const response = await fetch(apiUrl('/api/patient-signup/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +181,7 @@ const PatientAuth = ({ onLogin, onBack }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/patient-request-reset-otp/', {
+      const response = await fetch(apiUrl('/api/patient-request-reset-otp/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -219,7 +220,7 @@ const PatientAuth = ({ onLogin, onBack }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/patient-verify-reset-otp/', {
+      const response = await fetch(apiUrl('/api/patient-verify-reset-otp/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

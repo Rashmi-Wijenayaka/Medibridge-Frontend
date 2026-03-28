@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './AdminDoctor.css';
 import './PatientMessages.css';
+import { apiUrl, assetUrl, websocketUrl } from '../api';
 
 const PatientMessages = ({ patientData }) => {
   const [conversation, setConversation] = useState([]);
@@ -69,11 +70,11 @@ const PatientMessages = ({ patientData }) => {
 
     try {
       const [doctorRes, diagnosisRes, scanRes, patientMsgRes, patientProfileRes] = await Promise.all([
-        fetch(`http://127.0.0.1:8000/api/doctormessages/?patient=${activePatientId}`),
-        fetch(`http://127.0.0.1:8000/api/diagnoses/?patient=${activePatientId}`),
-        fetch(`http://127.0.0.1:8000/api/scans/?patient=${activePatientId}`),
-        fetch(`http://127.0.0.1:8000/api/messages/?patient=${activePatientId}`),
-        fetch(`http://127.0.0.1:8000/api/patients/${activePatientId}/`)
+        fetch(apiUrl(`/api/doctormessages/?patient=${activePatientId}`)),
+        fetch(apiUrl(`/api/diagnoses/?patient=${activePatientId}`)),
+        fetch(apiUrl(`/api/scans/?patient=${activePatientId}`)),
+        fetch(apiUrl(`/api/messages/?patient=${activePatientId}`)),
+        fetch(apiUrl(`/api/patients/${activePatientId}/`))
       ]);
 
       if (!doctorRes.ok || !diagnosisRes.ok || !scanRes.ok || !patientMsgRes.ok) {
@@ -207,11 +208,7 @@ const PatientMessages = ({ patientData }) => {
     const token = localStorage.getItem('token');
     if (!token) return undefined;
 
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const browserHost = window.location.hostname || '127.0.0.1';
-    // Keep websocket host aligned with REST backend host to avoid localhost/127 mismatch.
-    const wsHost = (browserHost === 'localhost' || browserHost === '::1') ? '127.0.0.1' : browserHost;
-    const wsUrl = `${protocol}://${wsHost}:8000/ws/chat/${activePatientId}/?token=${encodeURIComponent(token)}`;
+    const wsUrl = `${websocketUrl(`/ws/chat/${activePatientId}/`)}?token=${encodeURIComponent(token)}`;
     let ws = null;
 
     const refreshId = setInterval(() => {
@@ -295,7 +292,7 @@ const PatientMessages = ({ patientData }) => {
 
   const normalizeFileUrl = (fileUrl = '') => {
     if (!fileUrl) return '';
-    return fileUrl.startsWith('http') ? fileUrl : `http://127.0.0.1:8000${fileUrl}`;
+    return assetUrl(fileUrl);
   };
 
   const getFileName = (fileUrl = '') => {
@@ -379,7 +376,7 @@ const PatientMessages = ({ patientData }) => {
 
     setStatusMessage('Sending your answer...');
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/doctormessages/', {
+      const res = await fetch(apiUrl('/api/doctormessages/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -458,7 +455,7 @@ const PatientMessages = ({ patientData }) => {
           const formData = new FormData();
           formData.append('patient', activePatientId);
           formData.append('file', file);
-          const res = await fetch('http://127.0.0.1:8000/api/scans/', {
+          const res = await fetch(apiUrl('/api/scans/'), {
             method: 'POST',
             body: formData
           });

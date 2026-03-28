@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './PatientMessageCheck.css';
+import { apiUrl } from '../api';
 
 const PatientMessageCheck = ({ onBack }) => {
   const [searchMethod, setSearchMethod] = useState('phone'); // 'phone' or 'email'
@@ -25,8 +26,8 @@ const PatientMessageCheck = ({ onBack }) => {
 
     try {
       const endpoint = searchMethod === 'phone'
-        ? `http://127.0.0.1:8000/api/check-messages/?phone=${encodeURIComponent(query)}`
-        : `http://127.0.0.1:8000/api/check-messages/?email=${encodeURIComponent(query)}`;
+        ? apiUrl(`/api/check-messages/?phone=${encodeURIComponent(query)}`)
+        : apiUrl(`/api/check-messages/?email=${encodeURIComponent(query)}`);
 
       const res = await fetch(endpoint);
       const data = await res.json();

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './AdminDoctor.css';
+import { apiUrl } from '../api';
 
 const PatientDiagnosis = ({ patientData }) => {
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
@@ -22,8 +23,8 @@ const PatientDiagnosis = ({ patientData }) => {
     if (!activePatientId) return;
 
     Promise.all([
-      fetch(`http://127.0.0.1:8000/api/diagnoses/?patient=${activePatientId}`),
-      fetch(`http://127.0.0.1:8000/api/patients/${activePatientId}/`),
+      fetch(apiUrl(`/api/diagnoses/?patient=${activePatientId}`)),
+      fetch(apiUrl(`/api/patients/${activePatientId}/`)),
     ])
       .then(async ([diagnosisRes, patientRes]) => {
         const data = await diagnosisRes.json();
