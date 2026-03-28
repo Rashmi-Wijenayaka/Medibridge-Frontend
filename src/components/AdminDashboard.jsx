@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './AdminDoctor.css';
+import { apiUrl, assetUrl } from '../api';
 
 // simple admin dashboard that lists patients and allows concluding diagnosis
 const AdminDashboard = ({ onBack }) => {
@@ -111,7 +112,7 @@ const AdminDashboard = ({ onBack }) => {
 
   const buildPdfUrl = (pdfPath, createdAt) => {
     if (!pdfPath) return '#';
-    const base = pdfPath.startsWith('http') ? pdfPath : `http://127.0.0.1:8000${pdfPath}`;
+    const base = assetUrl(pdfPath);
     const stamp = createdAt ? new Date(createdAt).getTime() : Date.now();
     return `${base}?v=${stamp}`;
   };
@@ -216,13 +217,13 @@ const AdminDashboard = ({ onBack }) => {
     const headers = token ? { 'Authorization': `Token ${token}` } : {};
     
     Promise.all([
-      fetch('http://127.0.0.1:8000/api/patients/', {
+      fetch(apiUrl('/api/patients/'), {
         headers: headers
       }),
-      fetch('http://127.0.0.1:8000/api/diagnoses/', {
+      fetch(apiUrl('/api/diagnoses/'), {
         headers: headers
       }),
-      fetch('http://127.0.0.1:8000/api/messages/', {
+      fetch(apiUrl('/api/messages/'), {
         headers: headers
       })
     ])
@@ -348,21 +349,21 @@ const AdminDashboard = ({ onBack }) => {
     const headers = token ? { 'Authorization': `Token ${token}` } : {};
     
     // load scans for this patient
-    fetch(`http://127.0.0.1:8000/api/scans/?patient=${patient.id}`, {
+    fetch(apiUrl(`/api/scans/?patient=${patient.id}`), {
       headers: headers
     })
       .then(res => res.json())
       .then(data => setPatientScans(data))
       .catch(err => console.error('Failed to load scans', err));
 
-    fetch(`http://127.0.0.1:8000/api/patient-qa/${patient.id}/`, {
+    fetch(apiUrl(`/api/patient-qa/${patient.id}/`), {
       headers: headers
     })
       .then(res => res.json())
       .then(data => setPatientQA(data?.qa_pairs || []))
       .catch(err => console.error('Failed to load patient Q/A', err));
 
-    fetch(`http://127.0.0.1:8000/api/diagnoses/?patient=${patient.id}`, {
+    fetch(apiUrl(`/api/diagnoses/?patient=${patient.id}`), {
       headers: headers
     })
       .then(res => res.json())
@@ -385,7 +386,7 @@ const AdminDashboard = ({ onBack }) => {
     setSummaryStatus('Generating summary PDF...');
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/generate-summary-pdf/${selectedPatient.id}/`, {
+      const res = await fetch(apiUrl(`/api/generate-summary-pdf/${selectedPatient.id}/`), {
         method: 'POST',
         headers: headers
       });
@@ -404,7 +405,7 @@ const AdminDashboard = ({ onBack }) => {
       setSummaryStatus('Summary PDF generated successfully.');
 
       // Refresh report list so newly generated file appears immediately.
-      const reportRes = await fetch(`http://127.0.0.1:8000/api/diagnoses/?patient=${selectedPatient.id}`, {
+      const reportRes = await fetch(apiUrl(`/api/diagnoses/?patient=${selectedPatient.id}`), {
         headers: headers
       });
       const reportData = await reportRes.json();
@@ -425,7 +426,7 @@ const AdminDashboard = ({ onBack }) => {
     setSummaryStatus('Sending summary PDF to doctor section...');
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/send-summary-to-doctor/${latestSummaryDiagnosisId}/`, {
+      const res = await fetch(apiUrl(`/api/send-summary-to-doctor/${latestSummaryDiagnosisId}/`), {
         method: 'POST',
         headers: headers
       });
@@ -436,7 +437,7 @@ const AdminDashboard = ({ onBack }) => {
       setSummaryStatus('Summary PDF sent to doctor section.');
 
       // Update report statuses after sending.
-      const reportRes = await fetch(`http://127.0.0.1:8000/api/diagnoses/?patient=${selectedPatient.id}`, {
+      const reportRes = await fetch(apiUrl(`/api/diagnoses/?patient=${selectedPatient.id}`), {
         headers: headers
       });
       const reportData = await reportRes.json();
@@ -457,7 +458,7 @@ const AdminDashboard = ({ onBack }) => {
       patient: selectedPatient.id,
       admin_notes: diagnosis
     };
-    fetch('http://127.0.0.1:8000/api/diagnoses/', {
+    fetch(apiUrl('/api/diagnoses/'), {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -472,13 +473,13 @@ const AdminDashboard = ({ onBack }) => {
       .then(data => {
         console.log('Diagnosis saved', data);
         // Generate PDF and send email
-        fetch(`http://127.0.0.1:8000/api/generate-pdf/${data.id}/`, {
+        fetch(apiUrl(`/api/generate-pdf/${data.id}/`), {
           method: 'POST',
           headers: headers
         }).then(pdfRes => {
           if (pdfRes.ok) {
             // PDF generated, now send email
-            fetch(`http://127.0.0.1:8000/api/send-email/${data.id}/`, {
+            fetch(apiUrl(`/api/send-email/${data.id}/`), {
               method: 'POST',
               headers: headers
             }).then(emailRes => {
@@ -546,7 +547,7 @@ const AdminDashboard = ({ onBack }) => {
     setAiDiagnosisStatus('Preparing suggested diagnosis...');
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/lgbm-diagnose/${selectedPatient.id}/`,
+        apiUrl(`/api/lgbm-diagnose/${selectedPatient.id}/`),
         { headers: headers }
       );
       const data = await res.json();

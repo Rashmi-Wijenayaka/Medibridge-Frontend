@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './AdminDoctor.css';
+import { apiUrl, assetUrl, websocketUrl } from '../api';
 
 // simple doctor chat interface for communicating with patients
 const DoctorChat = ({ onBack, user }) => {
@@ -154,10 +155,10 @@ const DoctorChat = ({ onBack, user }) => {
   const fetchDoctorData = useCallback(() => {
     const token = localStorage.getItem('token');
     Promise.all([
-      fetch('http://127.0.0.1:8000/api/patients/', { headers: { 'Authorization': `Token ${token}` } }),
-      fetch('http://127.0.0.1:8000/api/diagnoses/', { headers: { 'Authorization': `Token ${token}` } }),
-      fetch('http://127.0.0.1:8000/api/messages/', { headers: { 'Authorization': `Token ${token}` } }),
-      fetch('http://127.0.0.1:8000/api/doctormessages/', { headers: { 'Authorization': `Token ${token}` } })
+      fetch(apiUrl('/api/patients/'), { headers: { 'Authorization': `Token ${token}` } }),
+      fetch(apiUrl('/api/diagnoses/'), { headers: { 'Authorization': `Token ${token}` } }),
+      fetch(apiUrl('/api/messages/'), { headers: { 'Authorization': `Token ${token}` } }),
+      fetch(apiUrl('/api/doctormessages/'), { headers: { 'Authorization': `Token ${token}` } })
     ])
       .then(async ([patientsRes, diagnosesRes, messagesRes, doctorMessagesRes]) => {
         const [patientsData, diagnosesData, messagesData, doctorMessagesData] = await Promise.all([
@@ -287,10 +288,10 @@ const DoctorChat = ({ onBack, user }) => {
   const refreshUnreadPatientReplies = useCallback(() => {
     const token = localStorage.getItem('token');
     Promise.all([
-      fetch('http://127.0.0.1:8000/api/messages/', {
+      fetch(apiUrl('/api/messages/'), {
         headers: { 'Authorization': `Token ${token}` }
       }),
-      fetch('http://127.0.0.1:8000/api/doctormessages/', {
+      fetch(apiUrl('/api/doctormessages/'), {
         headers: { 'Authorization': `Token ${token}` }
       })
     ])
@@ -345,7 +346,7 @@ const DoctorChat = ({ onBack, user }) => {
 
   const buildPdfUrl = (pdfPath, createdAt) => {
     if (!pdfPath) return '#';
-    const base = pdfPath.startsWith('http') ? pdfPath : `http://127.0.0.1:8000${pdfPath}`;
+    const base = assetUrl(pdfPath);
     const stamp = createdAt ? new Date(createdAt).getTime() : Date.now();
     return `${base}?v=${stamp}`;
   };
@@ -353,7 +354,7 @@ const DoctorChat = ({ onBack, user }) => {
 
   const normalizeFileUrl = (fileUrl = '') => {
     if (!fileUrl) return '';
-    return fileUrl.startsWith('http') ? fileUrl : `http://127.0.0.1:8000${fileUrl}`;
+    return assetUrl(fileUrl);
   };
 
   const getFileName = (fileUrl = '') => {
@@ -434,9 +435,7 @@ const DoctorChat = ({ onBack, user }) => {
     const token = localStorage.getItem('token');
     if (!token) return undefined;
 
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const host = window.location.hostname || '127.0.0.1';
-    const wsUrl = `${protocol}://${host}:8000/ws/chat/${selectedPatient.id}/?token=${encodeURIComponent(token)}`;
+    const wsUrl = `${websocketUrl(`/ws/chat/${selectedPatient.id}/`)}?token=${encodeURIComponent(token)}`;
 
     try {
       const ws = new WebSocket(wsUrl);
@@ -502,13 +501,13 @@ const DoctorChat = ({ onBack, user }) => {
     }
 
     Promise.all([
-      fetch(`http://127.0.0.1:8000/api/doctormessages/?patient=${patient.id}`, {
+      fetch(apiUrl(`/api/doctormessages/?patient=${patient.id}`), {
         headers: { 'Authorization': `Token ${token}` }
       }),
-      fetch(`http://127.0.0.1:8000/api/messages/?patient=${patient.id}`, {
+      fetch(apiUrl(`/api/messages/?patient=${patient.id}`), {
         headers: { 'Authorization': `Token ${token}` }
       }),
-      fetch(`http://127.0.0.1:8000/api/scans/?patient=${patient.id}`, {
+      fetch(apiUrl(`/api/scans/?patient=${patient.id}`), {
         headers: { 'Authorization': `Token ${token}` }
       })
     ])
@@ -601,7 +600,7 @@ const DoctorChat = ({ onBack, user }) => {
       .catch(err => console.error('Error loading conversation data', err));
 
     // now fetch diagnoses separately
-    fetch(`http://127.0.0.1:8000/api/diagnoses/?patient=${patient.id}`, {
+    fetch(apiUrl(`/api/diagnoses/?patient=${patient.id}`), {
       headers: { 'Authorization': `Token ${token}` }
     })
       .then(res => res.json())
@@ -682,7 +681,7 @@ const DoctorChat = ({ onBack, user }) => {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/doctormessages/', {
+      const response = await fetch(apiUrl('/api/doctormessages/'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -770,7 +769,7 @@ const DoctorChat = ({ onBack, user }) => {
           formData.append('patient', selectedPatient.id);
           formData.append('file', file);
 
-          const res = await fetch('http://127.0.0.1:8000/api/scans/', {
+          const res = await fetch(apiUrl('/api/scans/'), {
             method: 'POST',
             headers: {
               'Authorization': `Token ${token}`,
