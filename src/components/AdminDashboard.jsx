@@ -766,11 +766,11 @@ const AdminDashboard = ({ onBack }) => {
                   {patientScans.map(scan => (
                     <div key={`scan-${scan.id}`} className="scan-thumb">
                       {scan.file ? (
-                        <a href={scan.file} target="_blank" rel="noopener noreferrer">
+                        <a href={assetUrl(scan.file)} target="_blank" rel="noopener noreferrer">
                           {isPdfFile(scan.file) ? (
                             <div className="pdf-icon">📄</div>
                           ) : isImageFile(scan.file) ? (
-                            <img src={scan.file} alt="scan" />
+                            <img src={assetUrl(scan.file)} alt="scan" />
                           ) : (
                             <div className="pdf-icon">{getFileExtension(scan.file)}</div>
                           )}
