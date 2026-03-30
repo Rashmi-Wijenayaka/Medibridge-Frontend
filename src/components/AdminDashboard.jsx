@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './AdminDoctor.css';
 import { apiUrl, assetUrl } from '../api';
+
 // simple admin dashboard that lists patients and allows concluding diagnosis
 const AdminDashboard = ({ onBack }) => {
   const [clickedPatients, setClickedPatients] = useState([]);
-  // Track which patients have been clicked in this session (not persisted)
 
 // simple admin dashboard that lists patients and allows concluding diagnosis
 const AdminDashboard = ({ onBack }) => {
