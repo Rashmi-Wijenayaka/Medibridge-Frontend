@@ -29,8 +29,8 @@ const AdminDashboard = ({ onBack }) => {
   const [submitDiagnosisClicked, setSubmitDiagnosisClicked] = useState(false);
   const [missingScanIds, setMissingScanIds] = useState(() => new Set());
 
-  // Track which patients have been viewed in this session
-  const [viewedPatients, setViewedPatients] = useState(new Set());
+  // Track which patients have been viewed in this session (use array for reliable re-render)
+  const [viewedPatients, setViewedPatients] = useState([]);
 
   const buildPatientDisplayKey = useCallback((patient) => {
     // Key patients primarily by normalized name so different records for
@@ -653,7 +653,7 @@ const AdminDashboard = ({ onBack }) => {
             <ul>
               {filteredPatients.map(p => {
                 // Only show badge if patient needs admin attention and hasn't been viewed in this session
-                const hasBadge = p.needsAdminAttention && !viewedPatients.has(p.id);
+                const hasBadge = p.needsAdminAttention && !viewedPatients.includes(p.id);
                 return (
                   <li
                     key={`patient-${p.id}`}
@@ -664,7 +664,7 @@ const AdminDashboard = ({ onBack }) => {
                       className="patient-select-btn"
                       onClick={() => {
                         handleSelect(p);
-                        setViewedPatients(prev => new Set(prev).add(p.id));
+                        setViewedPatients(prev => prev.includes(p.id) ? prev : [...prev, p.id]);
                       }}
                       aria-current={selectedPatient?.id === p.id ? 'true' : undefined}
                       aria-label={`Open patient details for Queue ${p.queue_number || p.queueNumber || 'N/A'}`}
