@@ -29,6 +29,9 @@ const AdminDashboard = ({ onBack }) => {
   const [submitDiagnosisClicked, setSubmitDiagnosisClicked] = useState(false);
   const [missingScanIds, setMissingScanIds] = useState(() => new Set());
 
+  // Track which patients have been viewed in this session
+  const [viewedPatients, setViewedPatients] = useState(new Set());
+
   const buildPatientDisplayKey = useCallback((patient) => {
     // Key patients primarily by normalized name so different records for
     // the same person (one with queue and one without) collapse into a
@@ -648,37 +651,44 @@ const AdminDashboard = ({ onBack }) => {
             <p>No patients yet.</p>
           ) : (
             <ul>
-              {filteredPatients.map(p => (
-                <li
-                  key={`patient-${p.id}`}
-                  className={`${selectedPatient?.id === p.id ? 'selected' : ''} ${p.needsAdminAttention ? 'new-patient-item' : ''} ${p.patientStatusKind === 'completed' ? 'completed-patient-item' : ''}`.trim()}
-                >
-                  <button
-                    type="button"
-                    className="patient-select-btn"
-                    onClick={() => handleSelect(p)}
-                    aria-current={selectedPatient?.id === p.id ? 'true' : undefined}
-                      aria-label={`Open patient details for Queue ${p.queue_number || p.queueNumber || 'N/A'}`}
+              {filteredPatients.map(p => {
+                // Only show badge if patient needs admin attention and hasn't been viewed in this session
+                const hasBadge = p.needsAdminAttention && !viewedPatients.has(p.id);
+                return (
+                  <li
+                    key={`patient-${p.id}`}
+                    className={`${selectedPatient?.id === p.id ? 'selected' : ''} ${p.needsAdminAttention ? 'new-patient-item' : ''} ${p.patientStatusKind === 'completed' ? 'completed-patient-item' : ''}`.trim()}
                   >
+                    <button
+                      type="button"
+                      className="patient-select-btn"
+                      onClick={() => {
+                        handleSelect(p);
+                        setViewedPatients(prev => new Set(prev).add(p.id));
+                      }}
+                      aria-current={selectedPatient?.id === p.id ? 'true' : undefined}
+                      aria-label={`Open patient details for Queue ${p.queue_number || p.queueNumber || 'N/A'}`}
+                    >
                       <span className="patient-row-label">Queue {p.queue_number || p.queueNumber || 'N/A'}</span>
-                    {p.lastAnsweredAt && (
-                      <span className="patient-list-answered-at">Answered: {p.lastAnsweredAt}</span>
-                    )}
-                    {p.needsAdminAttention && (
-                      <span className={`new-patient-badge status-${p.patientStatusKind || 'diagnosis-needed'}`}>{p.adminAttentionLabel}</span>
-                    )}
-                    {p.hasQuickCompleteSymbol && (
-                      <span
-                        className="patient-status-check"
-                        title="Diagnosis submitted and summary sent to doctor"
-                        aria-label="Completed"
-                      >
-                        ✓
-                      </span>
-                    )}
-                  </button>
-                </li>
-              ))}
+                      {p.lastAnsweredAt && (
+                        <span className="patient-list-answered-at">Answered: {p.lastAnsweredAt}</span>
+                      )}
+                      {hasBadge && (
+                        <span className={`new-patient-badge status-${p.patientStatusKind || 'diagnosis-needed'}`}>{p.adminAttentionLabel}</span>
+                      )}
+                      {p.hasQuickCompleteSymbol && (
+                        <span
+                          className="patient-status-check"
+                          title="Diagnosis submitted and summary sent to doctor"
+                          aria-label="Completed"
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
