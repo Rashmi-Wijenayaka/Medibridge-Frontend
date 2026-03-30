@@ -29,8 +29,16 @@ const AdminDashboard = ({ onBack }) => {
   const [submitDiagnosisClicked, setSubmitDiagnosisClicked] = useState(false);
   const [missingScanIds, setMissingScanIds] = useState(() => new Set());
 
-  // Track which patients have been viewed in this session (use array for reliable re-render)
-  const [viewedPatients, setViewedPatients] = useState([]);
+  // Track which patients have been viewed in this session (persist in sessionStorage)
+  const [viewedPatients, setViewedPatients] = useState(() => {
+    const stored = sessionStorage.getItem('viewedPatients');
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  // Persist viewedPatients to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('viewedPatients', JSON.stringify(viewedPatients));
+  }, [viewedPatients]);
 
   const buildPatientDisplayKey = useCallback((patient) => {
     // Key patients primarily by normalized name so different records for
@@ -652,8 +660,8 @@ const AdminDashboard = ({ onBack }) => {
           ) : (
             <ul>
               {filteredPatients.map(p => {
-                // Only show badge if patient needs admin attention and hasn't been viewed in this session
-                const hasBadge = p.needsAdminAttention && !viewedPatients.includes(p.id);
+                // Only show badge if patient needs admin attention, is diagnosis-needed, and hasn't been viewed in this session
+                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed' && !viewedPatients.includes(p.id);
                 return (
                   <li
                     key={`patient-${p.id}`}
