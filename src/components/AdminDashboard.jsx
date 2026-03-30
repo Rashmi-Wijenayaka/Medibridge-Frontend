@@ -613,27 +613,6 @@ const AdminDashboard = ({ onBack }) => {
       <div className="admin-content">
         <div className="patient-list">
           <h3>Patients</h3>
-          {conclusionNeededPatients.length > 0 && (
-            <div className="patient-summary-banner conclusion-needed-banner">
-              <strong>Conclusion Needed:</strong>{' '}
-              <span className="summary-ready-list">
-                {conclusionNeededPatients.map((patient, index) => (
-                  <React.Fragment key={`conclusion-needed-${patient.id}`}>
-                    <button
-                      type="button"
-                      className="summary-ready-link"
-                      onClick={() => handleSelect(patient)}
-                      aria-label={`Open patient details for Queue ${patient.queue_number || patient.queueNumber || 'N/A'}`}
-                    >
-                      {(patient.full_name || patient.fullName || `Patient ${patient.id}`)
-                      } • Queue {patient.queue_number || patient.queueNumber || 'N/A'} • Round {patient.visit_display || patient.visit_count || 1}
-                    </button>
-                    {index < conclusionNeededPatients.length - 1 ? ' , ' : ''}
-                  </React.Fragment>
-                ))}
-              </span>
-            </div>
-          )}
           {patients.some(patient => patient.needsAdminAttention) && (
             <p className="patient-list-new-meta">
               Highlighted patients still need admin conclusion, summary PDF generation, or doctor delivery.
