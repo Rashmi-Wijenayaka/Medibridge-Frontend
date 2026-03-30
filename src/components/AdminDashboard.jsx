@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './AdminDoctor.css';
 import { apiUrl, assetUrl } from '../api';
@@ -280,32 +279,30 @@ const AdminDashboard = ({ onBack }) => {
             .map(item => item.patient)
         );
 
-        // Filter to only patients who have diagnosis activity
+        // Show all patients (no filter), but only show badge for those with diagnosis activity
         const normalizedPatients = (patientData || [])
-          .filter(patient => patientsWithDiagnosisRecords.has(patient.id))
           .map(patient => {
-              const actionStatus = getPatientActionStatus(patient, diagnosisData || [], messagesData || []);
-              const userMsgs = (messagesData || []).filter(
-                m => m.patient === patient.id && (m.sender === 'user' || m.sender === 'patient') && m.timestamp
-              );
-              const lastAnsweredAt = userMsgs.length > 0
-                ? new Date(Math.max(...userMsgs.map(m => new Date(m.timestamp).getTime()))).toLocaleString()
-                : null;
-              return {
-                ...patient,
-                needsAdminAttention: actionStatus.needsAttention,
-                adminAttentionLabel: actionStatus.label,
-                patientStatusKind: actionStatus.statusKind,
-                patientStatusLabel: actionStatus.label,
-                hasQuickCompleteSymbol:
-                  !actionStatus.needsAttention &&
-                  Boolean(actionStatus.latestDiag?.summary_pdf) &&
-                  Boolean(actionStatus.latestDiag?.sent_to_doctor),
-                visit_display: actionStatus.visit_display,
-                lastAnsweredAt,
-              };
-            });
-
+            const actionStatus = getPatientActionStatus(patient, diagnosisData || [], messagesData || []);
+            const userMsgs = (messagesData || []).filter(
+              m => m.patient === patient.id && (m.sender === 'user' || m.sender === 'patient') && m.timestamp
+            );
+            const lastAnsweredAt = userMsgs.length > 0
+              ? new Date(Math.max(...userMsgs.map(m => new Date(m.timestamp).getTime()))).toLocaleString()
+              : null;
+            return {
+              ...patient,
+              needsAdminAttention: actionStatus.needsAttention,
+              adminAttentionLabel: actionStatus.label,
+              patientStatusKind: actionStatus.statusKind,
+              patientStatusLabel: actionStatus.label,
+              hasQuickCompleteSymbol:
+                !actionStatus.needsAttention &&
+                Boolean(actionStatus.latestDiag?.summary_pdf) &&
+                Boolean(actionStatus.latestDiag?.sent_to_doctor),
+              visit_display: actionStatus.visit_display,
+              lastAnsweredAt,
+            };
+          });
         const dedupedPatients = dedupePatientsByDisplay(normalizedPatients);
 
         dedupedPatients.sort((left, right) => {
@@ -640,8 +637,8 @@ const AdminDashboard = ({ onBack }) => {
           ) : (
             <ul>
               {filteredPatients.map(p => {
-                // Hide badge for this patient if they have been clicked in this session
-                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed' && !clickedPatients.has(p.id);
+                // Hide badge for this patient if they have been clicked in this session or if they have no diagnosis activity
+                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed' && !clickedPatients.has(p.id) && patientsWithDiagnosisRecords.has(p.id);
                 return (
                   <li
                     key={`patient-${p.id}`}
