@@ -29,15 +29,15 @@ const AdminDashboard = ({ onBack }) => {
   const [submitDiagnosisClicked, setSubmitDiagnosisClicked] = useState(false);
   const [missingScanIds, setMissingScanIds] = useState(() => new Set());
 
-  // Track which patients have been viewed in this session (id + lastAnsweredAt)
+  // Track which patients have been viewed (id + lastAnsweredAt), persist in localStorage
   const [viewedPatients, setViewedPatients] = useState(() => {
-    const stored = sessionStorage.getItem('viewedPatients');
+    const stored = localStorage.getItem('viewedPatients');
     return stored ? JSON.parse(stored) : [];
   });
 
-  // Persist viewedPatients to sessionStorage whenever it changes
+  // Persist viewedPatients to localStorage whenever it changes
   useEffect(() => {
-    sessionStorage.setItem('viewedPatients', JSON.stringify(viewedPatients));
+    localStorage.setItem('viewedPatients', JSON.stringify(viewedPatients));
   }, [viewedPatients]);
 
   // Helper to check if a patient (id + lastAnsweredAt) has been viewed
