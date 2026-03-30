@@ -257,28 +257,16 @@ const AdminDashboard = ({ onBack }) => {
           messagesRes.json()
         ]);
 
-        // A patient is considered to have started diagnosis when there is chat activity.
-        const patientsWithChatActivity = new Set(
-          (messagesData || [])
-            .filter(item => item.patient)
-            .map(item => item.patient)
-        );
-
-        // Keep compatibility with records that already have admin diagnosis entries.
+        // Only consider patients who have at least one diagnosis record
         const patientsWithDiagnosisRecords = new Set(
           (diagnosisData || [])
             .filter(item => item.patient)
             .map(item => item.patient)
         );
 
-        const patientsWhoStartedDiagnosis = new Set([
-          ...patientsWithChatActivity,
-          ...patientsWithDiagnosisRecords,
-        ]);
-
-        // Filter to only patients who have started diagnosis
+        // Filter to only patients who have diagnosis activity
         const normalizedPatients = (patientData || [])
-          .filter(patient => patientsWhoStartedDiagnosis.has(patient.id))
+          .filter(patient => patientsWithDiagnosisRecords.has(patient.id))
           .map(patient => {
               const actionStatus = getPatientActionStatus(patient, diagnosisData || [], messagesData || []);
               const userMsgs = (messagesData || []).filter(
