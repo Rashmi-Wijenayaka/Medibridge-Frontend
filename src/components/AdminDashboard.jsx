@@ -860,5 +860,6 @@ const AdminDashboard = ({ onBack }) => {
     </div>
   );
 };
+}
 
 export default AdminDashboard;
