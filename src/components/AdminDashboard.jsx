@@ -273,13 +273,13 @@ const AdminDashboard = ({ onBack }) => {
         ]);
 
         // Only consider patients who have at least one diagnosis record
-        const patientsWithDiagnosisRecords = new Set(
+        const diagnosisPatientIds = new Set(
           (diagnosisData || [])
             .filter(item => item.patient)
             .map(item => item.patient)
         );
+        setPatientsWithDiagnosisRecords(diagnosisPatientIds);
 
-        // Show all patients (no filter), but only show badge for those with diagnosis activity
         const normalizedPatients = (patientData || [])
           .map(patient => {
             const actionStatus = getPatientActionStatus(patient, diagnosisData || [], messagesData || []);
