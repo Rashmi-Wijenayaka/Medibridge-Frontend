@@ -1,3 +1,5 @@
+  // Track which patients have been clicked in this session (not persisted)
+  const [clickedPatients, setClickedPatients] = useState([]);
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './AdminDoctor.css';
 import { apiUrl, assetUrl } from '../api';
@@ -630,8 +632,8 @@ const AdminDashboard = ({ onBack }) => {
           ) : (
             <ul>
               {filteredPatients.map(p => {
-                // Always show badge if patient needs admin attention and is diagnosis-needed
-                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed';
+                // Show badge if patient needs admin attention, is diagnosis-needed, and hasn't been clicked in this session
+                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed' && !clickedPatients.includes(p.id);
                 return (
                   <li
                     key={`patient-${p.id}`}
@@ -642,7 +644,7 @@ const AdminDashboard = ({ onBack }) => {
                       className="patient-select-btn"
                       onClick={() => {
                         handleSelect(p);
-                        // No longer update viewedPatients; do nothing extra here
+                        setClickedPatients(prev => prev.includes(p.id) ? prev : [...prev, p.id]);
                       }}
                       aria-current={selectedPatient?.id === p.id ? 'true' : undefined}
                       aria-label={`Open patient details for Queue ${p.queue_number || p.queueNumber || 'N/A'}`}
