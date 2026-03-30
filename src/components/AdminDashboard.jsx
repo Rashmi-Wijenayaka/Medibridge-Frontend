@@ -5,7 +5,6 @@ import { apiUrl, assetUrl } from '../api';
 
 // simple admin dashboard that lists patients and allows concluding diagnosis
 const AdminDashboard = ({ onBack }) => {
-  const [clickedPatients, setClickedPatients] = useState([]);
 
 // simple admin dashboard that lists patients and allows concluding diagnosis
 const AdminDashboard = ({ onBack }) => {
@@ -635,8 +634,8 @@ const AdminDashboard = ({ onBack }) => {
           ) : (
             <ul>
               {filteredPatients.map(p => {
-                // Show badge if patient needs admin attention, is diagnosis-needed, and hasn't been clicked in this session
-                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed' && !clickedPatients.includes(p.id);
+                // Always show badge if patient needs admin attention and is diagnosis-needed
+                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed';
                 return (
                   <li
                     key={`patient-${p.id}`}
@@ -647,7 +646,6 @@ const AdminDashboard = ({ onBack }) => {
                       className="patient-select-btn"
                       onClick={() => {
                         handleSelect(p);
-                        setClickedPatients(prev => prev.includes(p.id) ? prev : [...prev, p.id]);
                       }}
                       aria-current={selectedPatient?.id === p.id ? 'true' : undefined}
                       aria-label={`Open patient details for Queue ${p.queue_number || p.queueNumber || 'N/A'}`}
