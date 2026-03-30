@@ -29,19 +29,7 @@ const AdminDashboard = ({ onBack }) => {
   const [submitDiagnosisClicked, setSubmitDiagnosisClicked] = useState(false);
   const [missingScanIds, setMissingScanIds] = useState(() => new Set());
 
-  // Track which patients have been viewed (by patient ID), persist in localStorage
-  const [viewedPatients, setViewedPatients] = useState(() => {
-    const stored = localStorage.getItem('viewedPatients');
-    return stored ? JSON.parse(stored) : [];
-  });
-
-  // Persist viewedPatients to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('viewedPatients', JSON.stringify(viewedPatients));
-  }, [viewedPatients]);
-
-  // Helper to check if a patient ID has been viewed
-  const hasViewedPatient = (id) => viewedPatients.includes(id);
+  // No longer track viewed patients; always show badge if needed
 
   const buildPatientDisplayKey = useCallback((patient) => {
     // Key patients primarily by normalized name so different records for
@@ -642,8 +630,8 @@ const AdminDashboard = ({ onBack }) => {
           ) : (
             <ul>
               {filteredPatients.map(p => {
-                // Only show badge if patient needs admin attention, is diagnosis-needed, and hasn't been viewed (by ID)
-                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed' && !hasViewedPatient(p.id);
+                // Always show badge if patient needs admin attention and is diagnosis-needed
+                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed';
                 return (
                   <li
                     key={`patient-${p.id}`}
@@ -654,7 +642,7 @@ const AdminDashboard = ({ onBack }) => {
                       className="patient-select-btn"
                       onClick={() => {
                         handleSelect(p);
-                        setViewedPatients(prev => prev.includes(p.id) ? prev : [...prev, p.id]);
+                        // No longer update viewedPatients; do nothing extra here
                       }}
                       aria-current={selectedPatient?.id === p.id ? 'true' : undefined}
                       aria-label={`Open patient details for Queue ${p.queue_number || p.queueNumber || 'N/A'}`}
