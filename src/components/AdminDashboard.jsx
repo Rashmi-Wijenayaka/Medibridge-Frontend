@@ -3,8 +3,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './AdminDoctor.css';
 import { apiUrl, assetUrl } from '../api';
 
-// simple admin dashboard that lists patients and allows concluding diagnosis
-const AdminDashboard = ({ onBack }) => {
+
+
 
 // simple admin dashboard that lists patients and allows concluding diagnosis
 const AdminDashboard = ({ onBack }) => {
@@ -860,6 +860,6 @@ const AdminDashboard = ({ onBack }) => {
     </div>
   );
 };
-}
+
 
 export default AdminDashboard;
