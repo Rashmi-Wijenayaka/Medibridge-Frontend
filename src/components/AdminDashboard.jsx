@@ -34,8 +34,24 @@ const AdminDashboard = ({ onBack }) => {
   const [missingScanIds, setMissingScanIds] = useState(() => new Set());
 
 
-  // Track which patients have been clicked in this session to hide the badge for them
-  const [clickedPatients, setClickedPatients] = useState(() => new Set());
+  // Track which patients have been clicked (persisted in localStorage) to hide the badge for them
+  const CLICKED_PATIENTS_KEY = 'adminDashboardClickedPatients';
+  const [clickedPatients, setClickedPatients] = useState(() => {
+    const stored = localStorage.getItem(CLICKED_PATIENTS_KEY);
+    if (stored) {
+      try {
+        return new Set(JSON.parse(stored));
+      } catch {
+        return new Set();
+      }
+    }
+    return new Set();
+  });
+
+  // Persist clickedPatients to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(CLICKED_PATIENTS_KEY, JSON.stringify(Array.from(clickedPatients)));
+  }, [clickedPatients]);
 
   const buildPatientDisplayKey = useCallback((patient) => {
     // Key patients primarily by normalized name so different records for
