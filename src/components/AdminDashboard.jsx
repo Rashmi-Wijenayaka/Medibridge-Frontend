@@ -29,7 +29,7 @@ const AdminDashboard = ({ onBack }) => {
   const [submitDiagnosisClicked, setSubmitDiagnosisClicked] = useState(false);
   const [missingScanIds, setMissingScanIds] = useState(() => new Set());
 
-  // Track which patients have been viewed in this session (persist in sessionStorage)
+  // Track which patients have been viewed in this session (id + lastAnsweredAt)
   const [viewedPatients, setViewedPatients] = useState(() => {
     const stored = sessionStorage.getItem('viewedPatients');
     return stored ? JSON.parse(stored) : [];
@@ -39,6 +39,13 @@ const AdminDashboard = ({ onBack }) => {
   useEffect(() => {
     sessionStorage.setItem('viewedPatients', JSON.stringify(viewedPatients));
   }, [viewedPatients]);
+
+  // Helper to check if a patient (id + lastAnsweredAt) has been viewed
+  const hasViewedPatient = (id, lastAnsweredAt) => {
+    return viewedPatients.some(
+      (entry) => entry.id === id && entry.lastAnsweredAt === lastAnsweredAt
+    );
+  };
 
   const buildPatientDisplayKey = useCallback((patient) => {
     // Key patients primarily by normalized name so different records for
@@ -660,8 +667,8 @@ const AdminDashboard = ({ onBack }) => {
           ) : (
             <ul>
               {filteredPatients.map(p => {
-                // Only show badge if patient needs admin attention, is diagnosis-needed, and hasn't been viewed in this session
-                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed' && !viewedPatients.includes(p.id);
+                // Only show badge if patient needs admin attention, is diagnosis-needed, and hasn't been viewed for this answer
+                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed' && !hasViewedPatient(p.id, p.lastAnsweredAt);
                 return (
                   <li
                     key={`patient-${p.id}`}
@@ -672,7 +679,11 @@ const AdminDashboard = ({ onBack }) => {
                       className="patient-select-btn"
                       onClick={() => {
                         handleSelect(p);
-                        setViewedPatients(prev => prev.includes(p.id) ? prev : [...prev, p.id]);
+                        setViewedPatients(prev => {
+                          // Add or update the entry for this patient id
+                          const filtered = prev.filter(entry => entry.id !== p.id);
+                          return [...filtered, { id: p.id, lastAnsweredAt: p.lastAnsweredAt }];
+                        });
                       }}
                       aria-current={selectedPatient?.id === p.id ? 'true' : undefined}
                       aria-label={`Open patient details for Queue ${p.queue_number || p.queueNumber || 'N/A'}`}
