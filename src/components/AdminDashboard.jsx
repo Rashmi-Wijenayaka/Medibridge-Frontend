@@ -8,6 +8,7 @@ import { apiUrl, assetUrl } from '../api';
 // simple admin dashboard that lists patients and allows concluding diagnosis
 const AdminDashboard = ({ onBack }) => {
   const [patients, setPatients] = useState([]);
+  const [patientsWithDiagnosisRecords, setPatientsWithDiagnosisRecords] = useState(new Set());
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [diagnosis, setDiagnosis] = useState('');
   const [diagnosisDraftMeta, setDiagnosisDraftMeta] = useState('');
