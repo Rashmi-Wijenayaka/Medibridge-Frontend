@@ -1,6 +1,5 @@
+
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import './AdminDoctor.css';
-import { apiUrl, assetUrl } from '../api';
 import './AdminDoctor.css';
 import { apiUrl, assetUrl } from '../api';
 
