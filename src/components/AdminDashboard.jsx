@@ -75,42 +75,16 @@ const AdminDashboard = ({ onBack }) => {
     return patient?.id ? `id:${patient.id}` : `unknown:${(patient?.queue_number || patient?.queueNumber || '').toString().trim()}`;
   }, []);
 
+  // Dedupe by unique patient ID only (show all unique patients)
   const dedupePatientsByDisplay = useCallback((items) => {
-    const byDisplayKey = new Map();
-
+    const byId = new Map();
     (items || []).forEach((patient) => {
-      const key = buildPatientDisplayKey(patient);
-      const existing = byDisplayKey.get(key);
-      const hasValidQueue = !!(patient.queue_number || patient.queueNumber);
-      const existingHasValidQueue = !!(existing?.queue_number || existing?.queueNumber);
-
-      if (!existing) {
-        byDisplayKey.set(key, patient);
-        return;
-      }
-
-      // Always prefer a patient with a valid queue number over one with N/A
-      if (hasValidQueue && !existingHasValidQueue) {
-        byDisplayKey.set(key, patient);
-        return;
-      }
-      if (!hasValidQueue && existingHasValidQueue) {
-        // keep existing
-        return;
-      }
-
-      // Prefer records that still need admin action, then newer id.
-      if (patient.needsAdminAttention && !existing.needsAdminAttention) {
-        byDisplayKey.set(key, patient);
-        return;
-      }
-      if (patient.needsAdminAttention === existing.needsAdminAttention && (patient.id || 0) > (existing.id || 0)) {
-        byDisplayKey.set(key, patient);
+      if (patient && patient.id != null) {
+        byId.set(patient.id, patient);
       }
     });
-
-    return Array.from(byDisplayKey.values());
-  }, [buildPatientDisplayKey]);
+    return Array.from(byId.values());
+  }, []);
 
   const draftStorageKey = selectedPatient?.id ? `adminDiagnosisDraft:${selectedPatient.id}` : null;
 
@@ -282,6 +256,9 @@ const AdminDashboard = ({ onBack }) => {
           messagesRes.json()
         ]);
 
+        // Debug: Log all patients before deduplication
+        console.log('Raw patients from API:', patientData);
+
         // Only consider patients who have at least one diagnosis record
         const diagnosisPatientIds = new Set(
           (diagnosisData || [])
@@ -313,7 +290,11 @@ const AdminDashboard = ({ onBack }) => {
               lastAnsweredAt,
             };
           });
+        // Debug: Log all normalized patients before deduplication
+        console.log('Normalized patients:', normalizedPatients);
         const dedupedPatients = dedupePatientsByDisplay(normalizedPatients);
+        // Debug: Log patients after deduplication
+        console.log('Deduped patients:', dedupedPatients);
 
         dedupedPatients.sort((left, right) => {
           if (left.needsAdminAttention === right.needsAdminAttention) {
