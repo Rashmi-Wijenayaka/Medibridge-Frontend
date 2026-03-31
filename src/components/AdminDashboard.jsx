@@ -1,4 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+  const [lastVisit, setLastVisit] = useState(null);
+  // On mount, save current timestamp as last visit and load previous
+  useEffect(() => {
+    const LAST_VISIT_KEY = 'adminDashboardLastVisit';
+    const prev = localStorage.getItem(LAST_VISIT_KEY);
+    setLastVisit(prev ? new Date(prev) : null);
+    localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString());
+  }, []);
 import './AdminDoctor.css';
 import { apiUrl, assetUrl } from '../api';
 
@@ -602,6 +610,11 @@ const AdminDashboard = ({ onBack }) => {
     <div className="admin-container">
       <button className="btn-secondary back-btn admin-home-btn" onClick={onBack}>← Home</button>
       <h2>Administrator Dashboard</h2>
+      {lastVisit && (
+        <div className="admin-last-visit">
+          <strong>Last visit:</strong> {lastVisit.toLocaleString()}
+        </div>
+      )}
       <div className="admin-content">
         <div className="patient-list">
           <h3>Patients</h3>
@@ -639,7 +652,6 @@ const AdminDashboard = ({ onBack }) => {
             <ul>
               {filteredPatients.map(p => {
                 // Hide badge for this patient if they have been clicked in this session or if they have no diagnosis activity
-                const hasBadge = p.needsAdminAttention && p.patientStatusKind === 'diagnosis-needed' && !clickedPatients.has(p.id) && patientsWithDiagnosisRecords.has(p.id);
                 return (
                   <li
                     key={`patient-${p.id}`}
@@ -663,9 +675,6 @@ const AdminDashboard = ({ onBack }) => {
                       <span className="patient-row-label">Queue {p.queue_number || p.queueNumber || 'N/A'}</span>
                       {p.lastAnsweredAt && (
                         <span className="patient-list-answered-at">Answered: {p.lastAnsweredAt}</span>
-                      )}
-                      {hasBadge && (
-                        <span className={`new-patient-badge status-${p.patientStatusKind || 'diagnosis-needed'}`}>{p.adminAttentionLabel}</span>
                       )}
                       {p.hasQuickCompleteSymbol && (
                         <span
