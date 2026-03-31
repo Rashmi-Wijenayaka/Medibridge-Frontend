@@ -1,12 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-  const [lastVisit, setLastVisit] = useState(null);
-  // On mount, save current timestamp as last visit and load previous
-  useEffect(() => {
-    const LAST_VISIT_KEY = 'adminDashboardLastVisit';
-    const prev = localStorage.getItem(LAST_VISIT_KEY);
-    setLastVisit(prev ? new Date(prev) : null);
-    localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString());
-  }, []);
+import './AdminDoctor.css';
+import { apiUrl, assetUrl } from '../api';
 import './AdminDoctor.css';
 import { apiUrl, assetUrl } from '../api';
 
@@ -15,6 +9,14 @@ import { apiUrl, assetUrl } from '../api';
 
 // simple admin dashboard that lists patients and allows concluding diagnosis
 const AdminDashboard = ({ onBack }) => {
+  const [lastVisit, setLastVisit] = useState(null);
+  // On mount, save current timestamp as last visit and load previous
+  useEffect(() => {
+    const LAST_VISIT_KEY = 'adminDashboardLastVisit';
+    const prev = localStorage.getItem(LAST_VISIT_KEY);
+    setLastVisit(prev ? new Date(prev) : null);
+    localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString());
+  }, []);
   const [patients, setPatients] = useState([]);
   const [patientsWithDiagnosisRecords, setPatientsWithDiagnosisRecords] = useState(new Set());
   const [selectedPatient, setSelectedPatient] = useState(null);
